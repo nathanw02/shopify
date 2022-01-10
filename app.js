@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const converter = require('json-2-csv');
 const fs = require('fs');
 
 app.use(express.json());
@@ -59,6 +60,26 @@ app.delete('/api/delete', (req, res) => {
     updateDB();
     res.status(200).json({message: 'Item successfully deleted'});
 
+});
+
+app.get('/api/csv', (req, res) => {
+    let data = [];
+    for(const [key, val] of Object.entries(database)) {
+        let item = {
+            name: key,
+            quantity: val.quantity,
+            type: val.type
+        }
+        data.push(item);
+    }
+
+    converter.json2csv(data, (err, csv) => {
+        if(err) return res.status(400).json({error: 'Error converting to csv'});
+
+        res.attachment('inventory.csv');
+        res.status(200).send(csv);
+
+    });
 });
 
 app.use((req, res) => {
