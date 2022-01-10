@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Test</title>
+    </head>
+    <body>
+        <h1>TEST</h1>
+        <table id="inventory">
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Type</th>
+            </tr>
+        </table>
+
+        <br>
+
+        <form id="form">
+            <table>
+                <tr>
+                    <td><input type="text" name="name" placeholder="Item"></td>
+                    <td><input type="text" name="quantity" placeholder="Quantity"></td>
+                    <td><input type="text" name="type" placeholder="Type"></td>
+                </tr>
+            </table>
+            <input type="submit" id="formSubmit" value="Add Item" onclick="addItem();">
+        </form>
+    </body>
+    <style>
+        table, th, td {
+            border: 1px solid black; 
+        }
+        
+    </style>
+    <script>
+        function addItem() {
+            let data = new FormData(document.getElementById('form'));
+            let payload = {};
+
+            data.forEach((value, key) => {
+                payload[key] = value;
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: '/api/create',
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: () => {
+                    window.location = '/';
+                },
+                error: () => {
+                    window.location = '/';
+                }
+                
+            });
+        }
+
+        function deleteItem() {
+            let id = event.target.parentNode.parentNode.id;
+            let payload = {id: id};
+
+            $.ajax({
+                type: 'DELETE',
+                url: '/api/delete',
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: () => {
+                    window.location = '/';
+                },
+                error: () => {
+                    window.location = '/';
+                }
+                
+            });
+        }
+
+        function updateItem() {
+            let id = event.target.parentNode.parentNode.id;
+            let row = document.getElementById(id);
+            
+            let payload = {
+                name: row.getElementsByTagName('td')[0].innerText,
+                quantity: row.getElementsByTagName('td')[1].innerText,
+                type: row.getElementsByTagName('td')[2].innerText,
+                old: id
+            };
+
+            $.ajax({
+                type: 'PUT',
+                url: '/api/edit',
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: () => {
+                    window.location = '/';
+                },
+                error: () => {
+                    window.location = '/';
+                }
+                
+            });
+
+          
+        }
+
+        fetch('http://localhost:3000/api/inventory').then(async res => {
+            let list = await res.json();
+            let table = document.getElementById('inventory');
+            for(const [key, val] of Object.entries(list)) {
+                let row = table.insertRow();
+                row.id = key;
+                row.insertCell().innerHTML = `<div contenteditable>${key}</div`;
+                row.insertCell().innerHTML = `<div contenteditable>${val.quantity}</div`;
+                row.insertCell().innerHTML = `<div contenteditable>${val.type}</div`;
+                row.insertCell().innerHTML = '<input type="submit" value="Update" onclick="updateItem();">';
+                row.insertCell().innerHTML = `<input type="submit" value="Delete" onclick="deleteItem();">`;
+            }
+        });
+
+    </script>
+</html>
